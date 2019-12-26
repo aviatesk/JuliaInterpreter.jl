@@ -409,7 +409,7 @@ function check_isdefined(frame, @nospecialize(node))
     error("unrecognized isdefined node ", node)
 end
 
-# For "profiling" where JuliaIntepreter spends its time. See the commented-out block
+# For "profiling" where JuliaInterpreter spends its time. See the commented-out block
 # in `step_expr!`
 const _location = Dict{Tuple{Method,Int},Int}()
 

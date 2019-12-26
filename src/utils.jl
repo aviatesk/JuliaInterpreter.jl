@@ -309,13 +309,12 @@ end
 ## Printing
 
 function framecode_lines(src::CodeInfo)
-    buf = IOBuffer()
-    show(buf, src)
-    code = filter!(split(String(take!(buf)), '\n')) do line
-        !(line == "CodeInfo(" || line == ")" || isempty(line) || occursin("within `", line))
+    return map(string.(src.code)) do s
+        lines = filter!(split(s, '\n')) do line
+            !(isempty(line) || occursin("within `", line))
+        end
+        replace.(lines, Ref(r"\$\(QuoteNode\((.+?)\)\)" => s"\1"))
     end
-    code .= replace.(code, Ref(r"\$\(QuoteNode\((.+?)\)\)" => s"\1"))
-    return code
 end
 framecode_lines(framecode::FrameCode) = framecode_lines(framecode.src)
 
@@ -333,20 +332,26 @@ function print_framecode(io::IO, framecode::FrameCode; pc=0, range=1:nstatements
     replace_coretypes!(src; rev=true)
     code = framecode_lines(src)
     isfirst = true
-    for (stmtidx, stmtline) in enumerate(code)
+    for (stmtidx, stmtlines) in enumerate(code)
         stmtidx ∈ range || continue
         bpc = breakpointchar(framecode, stmtidx)
         isfirst || print(io, '\n')
         isfirst = false
-        print(io, bpc, ' ')
+        buf = IOBuffer()
+        print2(args...) = (print(io, args...); print(buf, args...))
+        print2(bpc, ' ')
         if iscolor
             color = stmtidx == pc ? Base.warn_color() : :normal
             printstyled(io, lpad(stmtidx, ndstmt); color=color, kwargs...)
+            print(buf, lpad(stmtidx, ndstmt))
         else
-            print(io, lpad(stmtidx, ndstmt), stmtidx == pc ? '*' : ' ')
+            print2(lpad(stmtidx, ndstmt), stmtidx == pc ? '*' : ' ')
         end
         line = linenumber(framecode, stmtidx)
-        print(io, ' ', line === nothing ? nullline : lpad(line, ndline), "  ", stmtline)
+        print2(' ', line === nothing ? nullline : lpad(line, ndline), "  ")
+        stmtpad = length(String(take!(buf)))
+        stmt = join(stmtlines, '\n' * (' ' ^ stmtpad)) # padding for multiline statements
+        print(io, stmt)
     end
 end
 
