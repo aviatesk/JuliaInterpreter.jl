@@ -10,9 +10,9 @@ let's build a frame:
 ```julia
 julia> frame = JuliaInterpreter.enter_call(summer, A)
 Frame for summer(A::AbstractArray{T,N} where N) where T in Main at REPL[2]:2
-   1* 2  1 ─       s = (zero)($(Expr(:static_parameter, 1)))
-   2  3  │   %2  = A
-   3  3  │         #temp# = (iterate)(%2)
+   1* 2  _3 = (zero)($(Expr(:static_parameter, 1)))
+   2  3  _2
+   3  3  _4 = (iterate)(%2)
 ⋮
 A = [1, 2, 5]
 T = Int64

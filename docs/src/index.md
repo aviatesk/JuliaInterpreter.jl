@@ -54,10 +54,10 @@ julia> @interpret sum([1,2,3])  # no element bigger than 4, breakpoint should no
 
 julia> frame, bpref = @interpret sum([1,2,5])  # should trigger breakpoint
 (Frame for sum(a::AbstractArray) in Base at reducedim.jl:648
-c 1* 648  1 ─      nothing
-  2  648  │   %2 = (Base.#sum#550)(Colon(), #self#, a)
-  3  648  └──      return %2
-a = [1, 2, 5], breakpoint(sum(a::AbstractArray) in Base at reducedim.jl:648, line 648))
+c 1* 652  nothing
+  2  652  (Base.#sum#583)(Colon(), _1, _2)
+  3  652  return %2
+a = [1, 2, 5], breakpoint(sum(a::AbstractArray; dims) in Base at reducedim.jl:652, line 652))
 ```
 
 `frame` is described in more detail on the next page; for now, suffice it to say
@@ -75,10 +75,10 @@ julia> enable(bp)
 
 julia> @interpret sum([1,2,5])
 (Frame for sum(a::AbstractArray) in Base at reducedim.jl:648
-c 1* 648  1 ─      nothing
-  2  648  │   %2 = (Base.#sum#550)(Colon(), #self#, a)
-  3  648  └──      return %2
-a = [1, 2, 5], breakpoint(sum(a::AbstractArray) in Base at reducedim.jl:648, line 648))
+c 1* 652  nothing
+  2  652  (Base.#sum#583)(Colon(), _1, _2)
+  3  652  return %2
+a = [1, 2, 5], breakpoint(sum(a::AbstractArray; dims) in Base at reducedim.jl:652, line 652))
 ```
 
 [`disable`](@ref) and [`enable`](@ref) allow you to turn breakpoints off and on without losing any
@@ -108,17 +108,17 @@ julia> break_on(:error)
 julia> fr, pc = @interpret f_outer()
 before error
 (Frame for f_outer() in Main at none:2
-  1  2  1 ─      (println)("before error")
-  2* 3  │        (f_inner)()
-  3  4  │   %3 = (println)("after error")
-  4  4  └──      return %3
+  1  2  (println)("before error")
+  2* 3  (f_inner)()
+  3  4  (println)("after error")
+  4  4  return %3
 callee: f_inner() in Main at none:1, breakpoint(error(s::AbstractString) in Base at error.jl:33, line 33, ErrorException("inner error")))
 
 julia> leaf(fr)
 Frame for error(s::AbstractString) in Base at error.jl:33
-  1  33  1 ─ %1 = (ErrorException)(s)
-  2* 33  │   %2 = (throw)(%1)
-  3  33  └──      return %2
+  1  33  (ErrorException)(s)
+  2* 33  (throw)(%1)
+  3  33  return %2
 s = "inner error"
 caller: f_inner() in Main at none:1
 
@@ -154,16 +154,16 @@ julia> @interpret myfunction(1, 2)
 julia> @interpret myfunction(5, 6)
 (Frame for myfunction(x, y) in Main at none:2
 ⋮
-  3  4  │   %3 = (>)(x, 3)
-  4  4  └──      goto #3 if not %3
-b 5* 4  2 ─      nothing
-  6  4  └──      goto #3
-  7  5  3 ┄ %7 = (+)(a, b, x, y)
+  3  4  (>)(_2, 3)
+  4  4  unless %3 goto %7
+b 5* 4  nothing
+  6  4  goto %7
+  7  5  (+)(_4, _5, _2, _3)
 ⋮
 x = 5
 y = 6
 a = 1
-b = 2, breakpoint(myfunction(x, y) in Main at none:2, line 4))
+b = 2, breakpoint(myfunction(x, y) in Main at none:2, line 4)
 ```
 
 Here the breakpoint is marked with a `b` indicating that it is an unconditional breakpoint.
